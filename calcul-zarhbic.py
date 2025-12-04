@@ -1,10 +1,17 @@
+"""
+Module principal pour le calculateur Zarhbic.
+Ce programme permet de calculer des expressions selon les règles du druide Zarhbic.
+"""
+
 def calcul_zarhbic(expression):
     """
     Calcule le résultat d'une expression selon les règles de Zarhbic.
-    Exemples :
-    - "35+" → 3 + 5 = 8
-    - "47+3*" → (4 + 7) + (7 * 3) = 11 + 21 = 32 (approximation)
-    - "104+2-" → (1 + 0) + (0 + 4) - 2 = 1 + 4 - 2 = 3 (à adapter selon ta logique)
+
+    Args:
+        expression (str): Chaîne représentant l'expression à calculer (ex: "35+", "47+3*").
+
+    Returns:
+        int or str: Résultat du calcul ou message d'erreur.
     """
     chiffres = []
     operateurs = []
@@ -20,12 +27,11 @@ def calcul_zarhbic(expression):
     if len(chiffres) < 2 and operateurs:
         return "Erreur : Il faut au moins deux chiffres pour un opérateur dyadique."
 
-    # 3. Application des règles (hypothèse : opérateurs entre chaque paire de chiffres)
+    # 3. Application des règles
     resultat = chiffres[0]
-    for i in range(len(operateurs)):
+    for i, operateur in enumerate(operateurs):
         if i + 1 >= len(chiffres):
             break  # Évite les erreurs d'index
-        operateur = operateurs[i]
         next_chiffre = chiffres[i + 1]
         if operateur == '+':
             resultat += next_chiffre
@@ -39,20 +45,28 @@ def calcul_zarhbic(expression):
     return resultat
 
 def main():
+    """
+    Fonction principale : boucle interactive pour saisir et calculer des expressions Zarhbic.
+    """
     print("Calculateur Zarhbic - Entrez une expression (ex: 35+, 47+3*, 104+2-)")
     print("Opérateurs autorisés : +, *, -, $")
     print("Tapez 'quit' pour quitter.")
 
     while True:
-        expression = input("\nVotre expression : ").strip()
-        if expression.lower() == 'quit':
-            break
-
         try:
+            expression = input("\nVotre expression : ").strip()
+            if expression.lower() == 'quit':
+                break
+
             resultat = calcul_zarhbic(expression)
             print(f"Résultat : {resultat}")
-        except Exception as e:
-            print(f"Erreur : {e}")
+
+        except ValueError as ve:
+            print(f"Erreur de valeur : {ve}")
+        except IndexError as ie:
+            print(f"Erreur d'index : {ie}")
+        except Exception:
+            print("Une erreur inattendue est survenue. Veuillez réessayer.")
 
 if __name__ == "__main__":
     main()
