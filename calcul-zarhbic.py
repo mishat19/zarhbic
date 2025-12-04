@@ -2,6 +2,7 @@
 Module pour le calculateur Zarhbic utilisant une pile.
 Lit les calculs depuis un fichier texte et affiche les résultats.
 """
+import os
 
 def lire_fichier(nom_fichier):
     """
@@ -14,7 +15,6 @@ def lire_fichier(nom_fichier):
         list: Liste des lignes du fichier, ou None en cas d'erreur.
     """
     # Vérifie si le fichier existe
-    import os
     if not os.path.exists(nom_fichier):
         print(f"Erreur : Le fichier '{nom_fichier}' n'existe pas.")
         return None
