@@ -13,14 +13,29 @@ def lire_fichier(nom_fichier):
     Returns:
         list: Liste des lignes du fichier, ou None en cas d'erreur.
     """
-    try:
-        with open(nom_fichier, 'r') as fichier:
-            return [ligne.strip() for ligne in fichier if ligne.strip()]
-    except FileNotFoundError:
+    # Vérifie si le fichier existe
+    import os
+    if not os.path.exists(nom_fichier):
         print(f"Erreur : Le fichier '{nom_fichier}' n'existe pas.")
         return None
-    except Exception as e:
-        print(f"Erreur lors de la lecture du fichier : {e}")
+
+    # Vérifie si le fichier est lisible
+    if not os.access(nom_fichier, os.R_OK):
+        print(f"Erreur : Le fichier '{nom_fichier}' n'est pas lisible.")
+        return None
+
+    # Lit le fichier avec un encodage explicite
+    try:
+        with open(nom_fichier, 'r', encoding='utf-8') as fichier:
+            return [ligne.strip() for ligne in fichier if ligne.strip()]
+    except UnicodeDecodeError:
+        print(f"Erreur : Le fichier '{nom_fichier}' n'est pas encodé en UTF-8.")
+        return None
+    except PermissionError:
+        print(f"Erreur : Permission refusée pour lire '{nom_fichier}'.")
+        return None
+    except OSError as e:
+        print(f"Erreur système lors de la lecture de '{nom_fichier}' : {e}")
         return None
 
 def parser_ligne(ligne):
