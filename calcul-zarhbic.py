@@ -1,36 +1,57 @@
 """
-Module principal pour le calculateur Zarhbic.
-Ce programme permet de calculer des expressions selon les règles du druide Zarhbic.
+Module pour le calculateur Zarhbic utilisant une pile.
+Lit les calculs depuis un fichier texte et affiche les résultats.
 """
 
-def parse_expression(expression):
+def lire_fichier(nom_fichier):
     """
-    Parse une expression en listes de chiffres et d'opérateurs.
+    Lit un fichier texte contenant les calculs de Zarhbic.
 
     Args:
-        expression (str): Chaîne à parser (ex: "35+", "47+3*").
+        nom_fichier (str): Nom du fichier à lire.
+
+    Returns:
+        list: Liste des lignes du fichier, ou None en cas d'erreur.
+    """
+    try:
+        with open(nom_fichier, 'r') as fichier:
+            return [ligne.strip() for ligne in fichier if ligne.strip()]
+    except FileNotFoundError:
+        print(f"Erreur : Le fichier '{nom_fichier}' n'existe pas.")
+        return None
+    except Exception as e:
+        print(f"Erreur lors de la lecture du fichier : {e}")
+        return None
+
+def parser_ligne(ligne):
+    """
+    Parse une ligne du fichier en liste de chiffres et d'opérateurs.
+
+    Args:
+        ligne (str): Ligne à parser (ex: "3 5 +").
 
     Returns:
         tuple: (list[int], list[str]) ou (None, str) en cas d'erreur.
     """
+    elements = ligne.split()
     chiffres = []
     operateurs = []
-    for c in expression:
-        if c.isdigit():
-            chiffres.append(int(c))
-        elif c in {'+', '*', '-', '$'}:
-            operateurs.append(c)
+    for element in elements:
+        if element.isdigit():
+            chiffres.append(int(element))
+        elif element in {'+', '*', '-', '/', '$'}:
+            operateurs.append(element)
         else:
-            return None, f"Erreur : Opérateur '{c}' non reconnu."
+            return None, f"Erreur : Élément '{element}' non reconnu."
 
     if len(chiffres) < 2 and operateurs:
         return None, "Erreur : Il faut au moins deux chiffres pour un opérateur dyadique."
 
     return chiffres, operateurs
 
-def calcul_zarhbic(chiffres, operateurs):
+def calcul_avec_pile(chiffres, operateurs):
     """
-    Calcule le résultat selon les règles de Zarhbic.
+    Calcule le résultat en utilisant une pile.
 
     Args:
         chiffres (list[int]): Liste des chiffres.
@@ -39,46 +60,56 @@ def calcul_zarhbic(chiffres, operateurs):
     Returns:
         int or str: Résultat ou message d'erreur.
     """
-    if not chiffres:
-        return "Erreur : Aucune expression valide."
+    pile = []
+    # On empile d'abord tous les chiffres
+    for chiffre in chiffres:
+        pile.append(chiffre)
 
-    resultat = chiffres[0]
-    for i, operateur in enumerate(operateurs):
-        if i + 1 >= len(chiffres):
-            return "Erreur : Nombre de chiffres insuffisant pour les opérateurs."
+    # On applique les opérateurs
+    for operateur in operateurs:
+        if len(pile) < 2:
+            return "Erreur : Pas assez de chiffres dans la pile pour appliquer l'opérateur."
 
-        next_chiffre = chiffres[i + 1]
+        droit = pile.pop()
+        gauche = pile.pop()
+
         if operateur == '+':
-            resultat += next_chiffre
+            pile.append(gauche + droit)
         elif operateur == '*':
-            resultat *= next_chiffre
+            pile.append(gauche * droit)
         elif operateur == '-':
-            resultat -= next_chiffre
+            pile.append(gauche - droit)
+        elif operateur == '/':
+            if droit == 0:
+                return "Erreur : Division par zéro."
+            pile.append(gauche // droit)  # Division entière pour rester sur des entiers
         elif operateur == '$':
-            resultat = int(str(resultat)[::-1])  # Inversion des chiffres
+            # Inversion des deux derniers chiffres (ex: 12$ → 21)
+            pile.append(int(str(droit) + str(gauche)))
+        else:
+            return f"Erreur : Opérateur '{operateur}' non géré."
 
-    return resultat
+    return pile[0] if pile else "Erreur : Aucune valeur dans la pile."
 
 def main():
     """
-    Boucle interactive pour saisir et calculer des expressions Zarhbic.
+    Lit les calculs depuis un fichier, les parse, et affiche les résultats.
     """
-    print("Calculateur Zarhbic - Entrez une expression (ex: 35+, 47+3*, 104+2-)")
-    print("Opérateurs autorisés : +, *, -, $")
-    print("Tapez 'quit' pour quitter.")
+    nom_fichier = "calculs.txt"
+    lignes = lire_fichier(nom_fichier)
+    if lignes is None:
+        return
 
-    while True:
-        expression = input("\nVotre expression : ").strip()
-        if expression.lower() == 'quit':
-            break
-
-        chiffres, operateurs = parse_expression(expression)
-        if isinstance(chiffres, tuple) and chiffres is None:
+    print(f"Calculs lus depuis '{nom_fichier}' :")
+    for i, ligne in enumerate(lignes, 1):
+        print(f"\nCalcul n°{i} : {ligne}")
+        chiffres, operateurs = parser_ligne(ligne)
+        if chiffres is None:
             print(operateurs)  # Affiche le message d'erreur
             continue
 
-        resultat = calcul_zarhbic(chiffres, operateurs)
-        print(f"Résultat : {resultat}")
+        resultat = calcul_avec_pile(chiffres, operateurs)
+        print(f"→ Résultat : {resultat}")
 
 if __name__ == "__main__":
     main()
