@@ -3,35 +3,50 @@ Module principal pour le calculateur Zarhbic.
 Ce programme permet de calculer des expressions selon les règles du druide Zarhbic.
 """
 
-def calcul_zarhbic(expression):
+def parse_expression(expression):
     """
-    Calcule le résultat d'une expression selon les règles de Zarhbic.
+    Parse une expression en listes de chiffres et d'opérateurs.
 
     Args:
-        expression (str): Chaîne représentant l'expression à calculer (ex: "35+", "47+3*").
+        expression (str): Chaîne à parser (ex: "35+", "47+3*").
 
     Returns:
-        int or str: Résultat du calcul ou message d'erreur.
+        tuple: (list[int], list[str]) ou (None, str) en cas d'erreur.
     """
     chiffres = []
     operateurs = []
-
-    # 1. Parsing de l'expression
     for c in expression:
         if c.isdigit():
             chiffres.append(int(c))
-        else:
+        elif c in {'+', '*', '-', '$'}:
             operateurs.append(c)
+        else:
+            return None, f"Erreur : Opérateur '{c}' non reconnu."
 
-    # 2. Vérification de la validité
     if len(chiffres) < 2 and operateurs:
-        return "Erreur : Il faut au moins deux chiffres pour un opérateur dyadique."
+        return None, "Erreur : Il faut au moins deux chiffres pour un opérateur dyadique."
 
-    # 3. Application des règles
+    return chiffres, operateurs
+
+def calcul_zarhbic(chiffres, operateurs):
+    """
+    Calcule le résultat selon les règles de Zarhbic.
+
+    Args:
+        chiffres (list[int]): Liste des chiffres.
+        operateurs (list[str]): Liste des opérateurs.
+
+    Returns:
+        int or str: Résultat ou message d'erreur.
+    """
+    if not chiffres:
+        return "Erreur : Aucune expression valide."
+
     resultat = chiffres[0]
     for i, operateur in enumerate(operateurs):
         if i + 1 >= len(chiffres):
-            break  # Évite les erreurs d'index
+            return "Erreur : Nombre de chiffres insuffisant pour les opérateurs."
+
         next_chiffre = chiffres[i + 1]
         if operateur == '+':
             resultat += next_chiffre
@@ -46,27 +61,24 @@ def calcul_zarhbic(expression):
 
 def main():
     """
-    Fonction principale : boucle interactive pour saisir et calculer des expressions Zarhbic.
+    Boucle interactive pour saisir et calculer des expressions Zarhbic.
     """
     print("Calculateur Zarhbic - Entrez une expression (ex: 35+, 47+3*, 104+2-)")
     print("Opérateurs autorisés : +, *, -, $")
     print("Tapez 'quit' pour quitter.")
 
     while True:
-        try:
-            expression = input("\nVotre expression : ").strip()
-            if expression.lower() == 'quit':
-                break
+        expression = input("\nVotre expression : ").strip()
+        if expression.lower() == 'quit':
+            break
 
-            resultat = calcul_zarhbic(expression)
-            print(f"Résultat : {resultat}")
+        chiffres, operateurs = parse_expression(expression)
+        if isinstance(chiffres, tuple) and chiffres is None:
+            print(operateurs)  # Affiche le message d'erreur
+            continue
 
-        except ValueError as ve:
-            print(f"Erreur de valeur : {ve}")
-        except IndexError as ie:
-            print(f"Erreur d'index : {ie}")
-        except Exception:
-            print("Une erreur inattendue est survenue. Veuillez réessayer.")
+        resultat = calcul_zarhbic(chiffres, operateurs)
+        print(f"Résultat : {resultat}")
 
 if __name__ == "__main__":
     main()
